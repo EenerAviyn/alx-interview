@@ -1,53 +1,77 @@
-class NQueens:
-    def __init__(self, size):
-        self.size = size
-        self.solutions = 0
-        self.solve()
+from sys import argv
 
-    def solve(self):
-        positions = [-1] * self.size
-        self.put_queen(positions, 0)
-        print("Found", self.solutions, "solutions.")
+if len(argv) is not 2:
+    print('Usage: nqueens N')
+    exit(1)
 
-    def put_queen(self, positions, target_row):
-        if target_row == self.size:
-            self.show_full_board(positions)
-            self.solutions += 1
-        else:
-            for column in range(self.size):
-                if self.check_place(positions, target_row, column):
-                    positions[target_row] = column
-                    self.put_queen(positions, target_row + 1)
+if not argv[1].isdigit():
+    print('N must be a number')
+    exit(1)
+
+N = int(argv[1])
+
+if N < 4:
+    print('N must be at least 4')
+    exit(1)
 
 
-    def check_place(self, positions, ocuppied_rows, column):
-        for i in range(ocuppied_rows):
-            if positions[i] == column or \
-                positions[i] - i == column - ocuppied_rows or \
-                positions[i] + i == column + ocuppied_rows:
+def board_column_gen(board=[]):
+    if len(board):
+        for row in board:
+            row.append(0)
+    else:
+        for row in range(N):
+            board.append([0])
+    return board
 
+
+def add_queen(board, row, col):
+    board[row][col] = 1
+
+
+def new_queen_safe(board, row, col):
+    x = row
+    y = col
+
+    for i in range(1, N):
+        if (y - i) >= 0:
+            if (x - i) >= 0:
+                if board[x - i][y - i]:
+                    return False
+            if board[x][y - i]:
                 return False
-        return True
+            if (x + i) < N:
+                if board[x + i][y - i]:
+                    return False
+    return True
 
-    def show_full_board(self, positions):
-        for row in range(self.size):
-            line = ""
-            for column in range(self.size):
-                if positions[row] == column:
-                    line += "Q "
-                else:
-                    line += ". "
-            print(line)
-        print("\n")
 
-    def show_short_board(self, positions):
-        line = ""
-        for i in range(self.size):
-            line += str(positions[i]) + " "
-        print(line)
+def coordinate_format(candidates):
+    holberton = []
+    for x, attempt in enumerate(candidates):
+        holberton.append([])
+        for i, row in enumerate(attempt):
+            holberton[x].append([])
+            for j, col in enumerate(row):
+                if col:
+                    holberton[x][i].append(i)
+                    holberton[x][i].append(j)
+    return holberton
 
-def main():
-    NQueens(8)
+candidates = []
+candidates.append(board_column_gen())
 
-if __name__ == "__main__":
-    main()
+for col in range(N):
+    new_candidates = []
+    for matrix in candidates:
+        for row in range(N):
+            if new_queen_safe(matrix, row, col):
+                temp = [line[:] for line in matrix]
+                add_queen(temp, row, col)
+                if col < N - 1:
+                    board_column_gen(temp)
+                new_candidates.append(temp)
+    candidates = new_candidates
+
+for item in coordinate_format(candidates):
+    print(item)
