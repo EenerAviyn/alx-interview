@@ -1,77 +1,54 @@
-from sys import argv
-
-if len(argv) is not 2:
-    print('Usage: nqueens N')
-    exit(1)
-
-if not argv[1].isdigit():
-    print('N must be a number')
-    exit(1)
-
-N = int(argv[1])
-
-if N < 4:
-    print('N must be at least 4')
-    exit(1)
+#!/usr/bin/python3
+import sys
 
 
-def board_column_gen(board=[]):
-    if len(board):
-        for row in board:
-            row.append(0)
-    else:
-        for row in range(N):
-            board.append([0])
-    return board
+def backtrack(r, n, cols, pos, neg, board):
+    if r == n:
+        res = []
+        for l in range(len(board)):
+            for k in range(len(board[l])):
+                if board[l][k] == 1:
+                    res.append([l, k])
+        print(res)
+        return
+
+    for c in range(n):
+        if c in cols or (r + c) in pos or (r - c) in neg:
+            continue
+
+        cols.add(c)
+        pos.add(r + c)
+        neg.add(r - c)
+        board[r][c] = 1
+
+        backtrack(r+1, n, cols, pos, neg, board)
+
+        cols.remove(c)
+        pos.remove(r + c)
+        neg.remove(r - c)
+        board[r][c] = 0
 
 
-def add_queen(board, row, col):
-    board[row][col] = 1
+def nqueens(n):
+    cols = set()
+    pos_diag = set()
+    neg_diag = set()
+    board = [[0] * n for i in range(n)]
+
+    backtrack(0, n, cols, pos_diag, neg_diag, board)
 
 
-def new_queen_safe(board, row, col):
-    x = row
-    y = col
-
-    for i in range(1, N):
-        if (y - i) >= 0:
-            if (x - i) >= 0:
-                if board[x - i][y - i]:
-                    return False
-            if board[x][y - i]:
-                return False
-            if (x + i) < N:
-                if board[x + i][y - i]:
-                    return False
-    return True
-
-
-def coordinate_format(candidates):
-    holberton = []
-    for x, attempt in enumerate(candidates):
-        holberton.append([])
-        for i, row in enumerate(attempt):
-            holberton[x].append([])
-            for j, col in enumerate(row):
-                if col:
-                    holberton[x][i].append(i)
-                    holberton[x][i].append(j)
-    return holberton
-
-candidates = []
-candidates.append(board_column_gen())
-
-for col in range(N):
-    new_candidates = []
-    for matrix in candidates:
-        for row in range(N):
-            if new_queen_safe(matrix, row, col):
-                temp = [line[:] for line in matrix]
-                add_queen(temp, row, col)
-                if col < N - 1:
-                    board_column_gen(temp)
-                new_candidates.append(temp)
-    candidates = new_candidates
-
-for item in coordinate_format(candidates):
-    print(item)
+if __name__ == "__main__":
+    n = sys.argv
+    if len(n) != 2:
+        print("Usage: nqueens N")
+        sys.exit(1)
+    try:
+        nn = int(n[1])
+        if nn < 4:
+            print("N must be at least 4")
+            sys.exit(1)
+        nqueens(nn)
+    except ValueError:
+        print("N must be a number")
+        sys.exit(1)
